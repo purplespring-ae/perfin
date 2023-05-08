@@ -1,3 +1,7 @@
 .pylintrc
-raw
+.vscode
+raw/
 pyver_env/
+log/
+*.csv
+scratch.ipynb

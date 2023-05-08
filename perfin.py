@@ -29,7 +29,7 @@ def grab_input():
          if fname.endswith('.csv')]
         )
     if not input_files:
-        perflog.warning("No input files found.")
+        logger.warning("No input files found.")
         return
 
     dfs = []
@@ -42,23 +42,14 @@ def grab_input():
         
     merged_df = pd.concat(dfs)
     merged_df = merged_df.reset_index(drop=True) # rectify duplicate indices
-    merged_df.to_csv("test.csv")
+    # merged_df.to_csv("test.csv")
 
-    # earliest_date = merged_df["Date"].min().strftime("%Y-%M-%D")
-    # latest_date = merged_df["Date"].max().strftime("%Y-%M-%D")
-    # logger.info(earliest_date, latest_date)
+    earliest_date = merged_df["Date"].min().strftime("%Y-%M-%D")
+    latest_date = merged_df["Date"].max().strftime("%Y-%M-%D")
+    logger.info(earliest_date, latest_date)
 
 
 
-perflog = perflog.logger(terminal_level=logging.DEBUG, file_level=None)
+logger = perflog.logger(terminal_level=logging.DEBUG, file_level=0)
 
 grab_input()
-
-# input_files =  list(os.listdir(INPUT_DIR))
-# # print(list(input_files))
-# for fname in input_files:
-#     if fname[:4] == "HOME":
-#         logger.info("Found %s.",fname)
-#         fpath = os.path.join(INPUT_DIR, fname)
-#         df = pd.read_csv(fpath)
-#         # print(df)
