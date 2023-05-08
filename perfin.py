@@ -159,11 +159,11 @@ def import_new_csv():
     df = reorder_columns(df)
     merged_csv = merged_df_export(df)
     # archive_processed_csv()
-    # logger.info("Merged input files to %s",merged_csv)
     return merged_csv
 
 def categorise_transactions(merged_csv):
     df = pd.read_csv(merged_csv)
+    print(df.shape)
 
 
 # MAIN ROUTINE

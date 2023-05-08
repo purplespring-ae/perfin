@@ -43,10 +43,10 @@ def clear_files():
                 os.remove(os.path.join(LOG_DIR,file))
 
 def begin(message):
-    return "Begin: " & message & "." if message[-1:] == "." else ""
+    return "Begin: " + message + "." if message[-1:] == "." else message
 
 def success(message):
-    return "Success: " & message & "." if message[-1:] == "." else ""
+    return "Success: " + message + "." if message[-1:] == "." else message
 
 def failed(message):
-    return "Failure: " & message & "." if message[-1:] == "." else ""
+    return "Failure: " + message + "." if message[-1:] == "." else message
