@@ -1,3 +1,5 @@
+## STANDARD MODULE IMPORTS
+## -----------------------
 import os
 import logging
 import pandas as pd
@@ -8,10 +10,13 @@ import plotly.graph_objects as go
 from jupyter_dash import JupyterDash
 from dash import dcc
 from dash import html
+
+## LOCAL MODULE IMPORTS
+## --------------------
 from perflog import logger as lg, success, begin, failed
 
-# CLASS VARIABLES
-
+## CLASS VARIABLES
+## --------------
 class Account():
     def __init__(self, bank, label, csv_flag, is_credit) -> None:
         self.bank = bank
@@ -19,25 +24,65 @@ class Account():
         self.csv_flag = csv_flag
         self.is_credit = is_credit
 
+class TransactionType():
+    def __init__(self):
+        pass
 
-# GLOBAL VARIABLES - FILE MANAGEMENT
+class TransactionCategory():
+    def __init__(self, label:str, type:TransactionType):
+        self.label = label
+        self.type = type
+
+class TransactionSubCategory(TransactionCategory):
+    def __init__(self, label:str, type:TransactionType, category:TransactionCategory):
+        super().__init__(label, type)
+        self.category = category
+        self.tells = [
+            # strings to look for in ["Description"]
+        ]
+
+## GLOBAL VARIABLES - FILE MANAGEMENT
+## ----------------------------------
 INPUT_DIR = ".\\raw\\new"
 ARCHIVE_DIR = ".\\raw\\archive"
 CSV_DIR = ".\\raw\\pf" # for combined CSV files
 
-# GLOBAL VARIABLES - FORMATS
+## GLOBAL VARIABLES - FORMATS
+## --------------------------
 FNAME_DATE = "%Y-%m-%d"
 
-# GLOBAL VARIABLES - TRANSACTION CLASSIFICATION
-TR_TYPES = [
+## GLOBAL VARIABLES - TRANSACTION CLASSIFICATION
+## ---------------------------------------------
+# TR_CATEGORIES = {
+#     "INCOME": {
+#         "Salary": ["Penderels"],
+#         "Banking":[],
+#         "Friends & Family":[]
+#     },
+#     "EXPENDITURE":{
+#         "Bills":[],
+#         "Home":[],
+#         "Food":[],
+#         "Care":[],
+#         "Activity":[],
+#         "Entertainment":[],
+#         "Discretionary":[],
+#         "Transport":[],
+#         "Holiday":[]
+#     },
+#     "DEBT":{
+#         "Borrow":[],
+#         "Repayment":[]
+#     },
+#     "TRANSFER":{
+#         "Transfer In":[],
+#         "Transfer Out":[]
+#     },
+# }
 
-]
-TR_CATS = [
-    {}
-]
 
-
-# INIT FUNCTIONS
+## INIT FUNCTIONS
+## --------------
 
 def import_new_csv():
     '''Look in INPUT_DIR for .csv files, create dataframe, move csv to archive'''
@@ -78,8 +123,8 @@ def import_new_csv():
     def add_columns(df):
         logger.debug(begin("Adding columns."))
         # add columns for expense/income categorisation
-        df = df.rename(columns={"Type": "Method"}) # so that type can be used for income/expenditure (?/borrow/repay?)
-        df["Type"] = "TBC"
+        # TODO: Method = Type
+        # TODO: Type
         df["Category"] = "TBC"
         df["Sub-Category"] = "TBC"
         # add double-entry columns
@@ -163,10 +208,10 @@ def import_new_csv():
 
 def categorise_transactions(merged_csv):
     df = pd.read_csv(merged_csv)
-    print(df.shape)
+    
 
-
-# MAIN ROUTINE
+## MAIN ROUTINE
+## ------------
 
 if __name__ == "__main__":
     # instantiate logger
