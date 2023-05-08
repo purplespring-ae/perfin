@@ -2,6 +2,7 @@
 ## -----------------------
 import os
 import logging
+import configparser
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -51,36 +52,6 @@ CSV_DIR = ".\\raw\\pf" # for combined CSV files
 ## --------------------------
 FNAME_DATE = "%Y-%m-%d"
 
-## GLOBAL VARIABLES - TRANSACTION CLASSIFICATION
-## ---------------------------------------------
-# TR_CATEGORIES = {
-#     "INCOME": {
-#         "Salary": ["Penderels"],
-#         "Banking":[],
-#         "Friends & Family":[]
-#     },
-#     "EXPENDITURE":{
-#         "Bills":[],
-#         "Home":[],
-#         "Food":[],
-#         "Care":[],
-#         "Activity":[],
-#         "Entertainment":[],
-#         "Discretionary":[],
-#         "Transport":[],
-#         "Holiday":[]
-#     },
-#     "DEBT":{
-#         "Borrow":[],
-#         "Repayment":[]
-#     },
-#     "TRANSFER":{
-#         "Transfer In":[],
-#         "Transfer Out":[]
-#     },
-# }
-
-
 ## INIT FUNCTIONS
 ## --------------
 
@@ -94,10 +65,10 @@ def import_new_csv():
         logger.warning(failed("No input files found."))
         return
 
-    def get_input_files():
+    def merge_input_files(fnames):
         logger.info(begin("Getting input files"))
         dfs = []
-        for f in input_files:
+        for f in fnames:
             # read CSV using index_col=False to avoid CC misalignment
             df = pd.read_csv(f, index_col=False)
             df.columns = df.columns.str.strip()
@@ -105,6 +76,19 @@ def import_new_csv():
         merged_df = pd.concat(dfs)
         logger.info(success("Done getting input files - %s found" % len(dfs)))
         return merged_df
+
+    def add_columns(df):
+        logger.debug(begin("Adding columns."))
+        # add columns for expense/income categorisation
+        df["Method"] = df["Type"]
+        df["Type"] = "TYPE_TBC"
+        df["Category"] = "CAT_TBC"
+        df["Sub-Category"] = "SUBCAT_TBC"
+        # add double-entry columns
+        df["Debit"] = ""
+        df["Credit"] = ""
+        logger.debug(success("Done adding columns."))
+        return df
 
     def standardise_input_data(df):
         logger.debug(begin("Standardising data across sources"))
@@ -117,21 +101,18 @@ def import_new_csv():
         df = df.reset_index(drop=True) 
         # Reformat: standardise and type Date
         df["Date"] = pd.to_datetime(df["Date"], format="mixed")
+        # Assign values to CC balance declaration
+        mask = (df["Method"].isna()) & (df["Description"].str.contains("Balance")) & (df["Account Name"] == "CREDIT")
+        df.loc[mask, "Method"] = "BAL"
         logger.debug(success("Done standardising data."))
+        # Standardise CC transaction methods to TLA
+        replace_methods = {"Purchase": "PUR", 
+                        "Payment": "PAY", 
+                        "Interest": "INT"}
+        df["Method"] = df["Method"].replace(replace_methods)
+
         return df
     
-    def add_columns(df):
-        logger.debug(begin("Adding columns."))
-        # add columns for expense/income categorisation
-        # TODO: Method = Type
-        # TODO: Type
-        df["Category"] = "TBC"
-        df["Sub-Category"] = "TBC"
-        # add double-entry columns
-        df["Debit"] = ""
-        df["Credit"] = ""
-        logger.debug(success("Done adding columns."))
-        return df
 
     def format_tr_value(df):
         logger.debug(begin("Formatting Value column."))
@@ -161,8 +142,9 @@ def import_new_csv():
         logger.debug(begin("Reordering columns."))
         column_order = [
             "Date",
-            "Type",
+            "Method",
             "Description",
+            "Type",
             "Category",
             "Sub-Category",
             "Debit",
@@ -187,7 +169,7 @@ def import_new_csv():
         logger.info(success("Done exporting transactions. Filepath: %s" % fpath))
         return fpath
     
-    def archive_processed_csv():
+    def archive_processed_csv(fpaths):
         logger.info("Archiving processed .csv files")
         # move iput csv to archive
         for f in input_files:
@@ -196,14 +178,14 @@ def import_new_csv():
             os.rename(f, new_path)
         logger.info(success("Done -Moved %s files" % len(input_files)))
 
-    df = get_input_files()
-    df = standardise_input_data(df)
+    df = merge_input_files(input_files)
     df = add_columns(df)
+    df = standardise_input_data(df)
     df = format_tr_value(df)
     df = trim_input_bloat(df)
     df = reorder_columns(df)
     merged_csv = merged_df_export(df)
-    # archive_processed_csv()
+    # archive_processed_csv(input_files)
     return merged_csv
 
 def categorise_transactions(merged_csv):
