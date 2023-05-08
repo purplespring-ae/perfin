@@ -41,3 +41,12 @@ def clear_files():
         for file in os.listdir(LOG_DIR):
             if file.endswith(".log"):
                 os.remove(os.path.join(LOG_DIR,file))
+
+def begin(message):
+    return "Begin: " & message & "." if message[-1:] == "." else ""
+
+def success(message):
+    return "Success: " & message & "." if message[-1:] == "." else ""
+
+def failed(message):
+    return "Failure: " & message & "." if message[-1:] == "." else ""
