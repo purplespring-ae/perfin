@@ -49,7 +49,6 @@ def grab_input():
     logger.info(earliest_date, latest_date)
 
 
-
 logger = perflog.logger(terminal_level=logging.DEBUG, file_level=0)
 
 grab_input()
