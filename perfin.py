@@ -21,9 +21,9 @@ class Account():
 
 
 # GLOBAL VARIABLES
-INPUT_DIR = "./raw/new"
-ARCHIVE_DIR = "./raw/archive"
-CSV_DIR = "./raw/pf" # for combined CSV files
+INPUT_DIR = ".\\raw\\new"
+ARCHIVE_DIR = ".\\raw\\archive"
+CSV_DIR = ".\\raw\\pf" # for combined CSV files
 
 FNAME_DATE = "%Y-%m-%d"
 
