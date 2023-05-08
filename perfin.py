@@ -48,10 +48,42 @@ def import_new_csv():
         dfs.append(df)
         
     merged_df = pd.concat(dfs)
-    merged_df = merged_df.reset_index(drop=True) # rectify duplicate indices
+
+    # Reformat: Standardise account name
+    merged_df["Account Name"] = merged_df["Account Name"].replace(
+        {"HOME": "HOME",
+         "Saver": "SAVER",
+         "'A W EVANS": 'CREDIT'}
+    )
+    # Reformat: type Value
+    merged_df["Value"] = merged_df["Value"].astype(float)
+    # Reformat: add Debit and Credit columns
+    merged_df["Debit"] = ""
+    merged_df["Credit"] = ""
+    # Reformat: Split "Value" into Dr Cr depending on if credit card
+    is_cc = (merged_df["Account Name"] == "CREDIT")
+    is_pos = (merged_df["Value"] > 0)
+    is_neg = (merged_df["Value"] < 0)
+
+    merged_df["Credit"] = np.where(is_cc & is_pos, merged_df["Value"],"")
+    merged_df["Debit"] = np.where(is_cc & is_neg, abs(merged_df["Value"]),"")
+    merged_df["Credit"] = np.where(~is_cc & is_pos, merged_df["Value"],"")
+    merged_df["Debit"] = np.where(~is_cc & is_neg, abs(merged_df["Value"]),"")
+
+    merged_df = merged_df.drop(columns=["Value","Account Number"])
+    
+ 
+    # Reformat: rectify duplicate indices
+    merged_df = merged_df.reset_index(drop=True) 
+    # Reformat: standardise and type Date
     merged_df["Date"] = pd.to_datetime(merged_df["Date"], format="mixed")
-    merged_df["Category"] = "Uncategorised"
-    merged_df["Sub-Category"] = "Uncategorised"
+    # Reformat: trim bloat from Description
+    merged_df["Description"] = merged_df["Description"].str.lstrip("'")
+
+    # add columns for expense/income categorisation
+    merged_df["Type"] = "TBC"
+    merged_df["Category"] = "TBC"
+    merged_df["Sub-Category"] = "TBC"
 
     # save merged df to csv
     earliest_date = merged_df["Date"].min().strftime(FNAME_DATE) 
@@ -62,14 +94,14 @@ def import_new_csv():
     fpath = os.path.join(CSV_DIR,fname + ".csv")
     merged_df.to_csv(fpath)
 
-    # move iput csv to archive merged
-    for f in input_files:
-        os.rename(f, os.path.join(ARCHIVE_DIR, os.path.basename(f) + ".csv"))
+    # move iput csv to archive
+    # for f in input_files:
+    #     os.rename(f, os.path.join(ARCHIVE_DIR, os.path.basename(f) + ".csv"))
     
     return fpath
 
 def categorise_transactions(merged_csv):
-    pass
+    df = pd.read_csv(merged_csv)
 
 # MAIN ROUTINE
 
@@ -79,4 +111,4 @@ if __name__ == "__main__":
 
     # work with new data
     fpath_new = import_new_csv()
-    categorise_transactions(fpath_new)
+    # categorise_transactions(fpath_new)
