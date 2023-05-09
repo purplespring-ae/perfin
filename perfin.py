@@ -173,20 +173,26 @@ def import_new_csv():
     archive_processed_csv(input_files)
     return merged_csv
 
-def categorise_transactions(merged_csv):
-    df = pd.read_csv(merged_csv)
-    
+def get_subcategories():
+    pass
+
+## CUSTOMISATION
+## -------------
+
 
 ## MAIN ROUTINE
 ## ------------
 
-if __name__ == "__main__":
-    # instantiate logger
-    logger = lg(terminal_level=logging.DEBUG, file_level=0)
+# instantiate logger
+logger = lg(terminal_level=logging.DEBUG, file_level=0)
 
-    # connect to db
+if __name__ == "__main__":
+
+    # connect to db and config
     conn, cursor = db.conn_init()
+    with open("db/schema.sql") as schema:
+        commands = schema.read()
+        cursor.executescript(commands)
 
     # work with new data
-    fpath_new = import_new_csv()
-    # categorise_transactions(fpath_new)
+    fpath_new = import_new_csv() # TODO make CSV backup-only, use sqlite for storage
