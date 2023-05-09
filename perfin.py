@@ -2,7 +2,6 @@
 ## -----------------------
 import os
 import logging
-import sqlite3
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -65,6 +64,7 @@ def import_new_csv():
         # add double-entry columns
         df["Debit"] = ""
         df["Credit"] = ""
+        df["Imported Date"] = datetime.today().strftime(FNAME_DATE)
         logger.debug(success("Done adding columns."))
         return df
 
@@ -135,7 +135,8 @@ def import_new_csv():
             "Debit",
             "Credit",
             "Account Name",
-            "Balance"
+            "Balance",
+            "Imported Date"
         ]
         df = df.reindex(columns=column_order)
         df = df.rename(columns={
@@ -148,12 +149,14 @@ def import_new_csv():
             "Debit": "debit",
             "Credit": "credit",
             "Account Name": "account",
-            "Balance":"balance" 
+            "Balance": "balance",
+            "Imported Date":"imported_date"
         })
         logger.debug(success("Done matching columns to db"))
         return df
 
     def merged_df_export(df):
+        # TODO: deprecate
         logger.info(begin("Exporting merged transactions dataframe to %s" % CSV_DIR))
         # save merged df to csv
         earliest_date = df["date"].min().strftime(FNAME_DATE) 
@@ -169,11 +172,11 @@ def import_new_csv():
     def archive_processed_csv(fpaths):
         logger.info("Archiving processed .csv files")
         # move iput csv to archive
-        for f in input_files:
+        for f in fpaths:
             new_path = os.path.join(ARCHIVE_DIR, os.path.basename(f))
             logger.debug("Renaming %s to %s" % (f, new_path))
             os.rename(f, new_path)
-        logger.info(success("Done -Moved %s files" % len(input_files)))
+        logger.info(success("Done - Moved %s files" % len(fpaths)))
 
     df = merge_input_files(input_files)
     df = add_columns(df)
@@ -181,13 +184,16 @@ def import_new_csv():
     df = double_entry_from_value(df)
     df = trim_input_bloat(df)
     df = rename_order_columns(df)
-    merged_csv = merged_df_export(df)
+    # merged_csv = merged_df_export(df)
     archive_processed_csv(input_files)
     db.insert_transactions(df)
 
+## UTILITY FUNCTIONS
+## -----------------
 
-def get_subcategories():
+def categorise_transactions():
     pass
+
 
 ## CUSTOMISATION
 ## -------------
@@ -208,4 +214,4 @@ if __name__ == "__main__":
         cursor.executescript(commands)
 
     # work with new data
-    fpath_new = import_new_csv() # TODO make CSV backup-only, use sqlite for storage
+    fpath_new = import_new_csv()

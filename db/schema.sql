@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS accounts (
 CREATE TABLE IF NOT EXISTS transactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date TEXT,
+    defer_date TEXT,
     method TEXT,
     description TEXT,
     type TEXT,
@@ -18,6 +19,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     credit REAL,
     account INT,
     balance REAL,
+    imported_date TEXT,
     FOREIGN KEY (category) REFERENCES categories(id),
     FOREIGN KEY (subcategory) REFERENCES subcategories(id),
     FOREIGN KEY (account) REFERENCES accounts(id)
@@ -40,6 +42,7 @@ CREATE TABLE IF NOT EXISTS subcategories (
 
 INSERT INTO categories (label) 
 VALUES 
+  ('Salary'),
   ('Benefits'),
   ('Banking'),
   ('Friends & Family'),
