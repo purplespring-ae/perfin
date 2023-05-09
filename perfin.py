@@ -123,8 +123,8 @@ def import_new_csv():
         logger.debug(success("Done trimming input bloat"))
         return df    
  
-    def reorder_columns(df):
-        logger.debug(begin("Reordering columns."))
+    def rename_order_columns(df):
+        logger.debug(begin("Renaming and reordering columns to match database."))
         column_order = [
             "Date",
             "Method",
@@ -138,14 +138,26 @@ def import_new_csv():
             "Balance"
         ]
         df = df.reindex(columns=column_order)
-        logger.debug(success("Done reordering columns"))
+        df = df.rename(columns={
+            "Date": "date",
+            "Method": "method",
+            "Description": "description",
+            "Type": "type",
+            "Category": "category",
+            "Sub-Category": "subcategory",
+            "Debit": "debit",
+            "Credit": "credit",
+            "Account Name": "account",
+            "Balance":"balance" 
+        })
+        logger.debug(success("Done matching columns to db"))
         return df
 
     def merged_df_export(df):
         logger.info(begin("Exporting merged transactions dataframe to %s" % CSV_DIR))
         # save merged df to csv
-        earliest_date = df["Date"].min().strftime(FNAME_DATE) 
-        latest_date = df["Date"].max().strftime(FNAME_DATE)
+        earliest_date = df["date"].min().strftime(FNAME_DATE) 
+        latest_date = df["date"].max().strftime(FNAME_DATE)
         today_date = datetime.today().strftime(FNAME_DATE)
         logger.info("Transactions found for this date range: %s to %s", earliest_date, latest_date)
         fname = f"transactions_{earliest_date}_to_{latest_date}_imported_{today_date}"
@@ -168,10 +180,11 @@ def import_new_csv():
     df = standardise_input_data(df)
     df = double_entry_from_value(df)
     df = trim_input_bloat(df)
-    df = reorder_columns(df)
+    df = rename_order_columns(df)
     merged_csv = merged_df_export(df)
     archive_processed_csv(input_files)
-    return merged_csv
+    db.insert_transactions(df)
+
 
 def get_subcategories():
     pass
