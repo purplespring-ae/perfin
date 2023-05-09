@@ -97,19 +97,18 @@ def import_new_csv():
             {"HOME": "HOME",
             "Saver": "SAVER",
             "'A W EVANS": 'CREDIT'})
-        # Reformat: rectify duplicate indices
-        df = df.reset_index(drop=True) 
         # Reformat: standardise and type Date
-        df["Date"] = pd.to_datetime(df["Date"], format="mixed")
+        ldate_mask = (df['Date'].str.contains('\d{2} \w{3} \d{4}'))
+        sdate_mask = (df['Date'].str.contains('\d{2}/\d{2}/\d{4}'))
+        df.loc[ldate_mask, 'Date'] = pd.to_datetime(df.loc[ldate_mask, 'Date'], format='%d %b %Y').dt.date
+        df.loc[sdate_mask, 'Date'] = pd.to_datetime(df.loc[sdate_mask, 'Date'], format='%d/%m/%Y').dt.date
+       
         # Handle null values for CC balance declaration method and Balance column
         mask_credit = (df["Account Name"] == "CREDIT")
         df.loc[mask_credit & (df["Method"].isna()) & (df["Description"].str.contains("Balance")), "Method"] = "BAL"
         print(df.loc[mask_credit & (df["Balance"].isna()), "Balance"])
         df.loc[mask_credit & (df["Balance"].isna()), "Balance"] = float("nan")
-        #(df["Method"].isna()) & (df["Description"].str.contains("Balance")) & (df["Account Name"] == "CREDIT")
-        #df.loc[mask, "Method"] = "BAL"
-        #mask = (df["Balance"].isna()) & (df["Account Name"] == "CREDIT")
-        #df.loc[mask, "Balance"] = "NaN"
+
         # Standardise CC transaction methods to TLA
         replace_methods = {"Purchase": "PUR", 
                         "Payment": "PAY", 
@@ -117,15 +116,19 @@ def import_new_csv():
         df["Method"] = df["Method"].replace(replace_methods)
         logger.debug(success("Done standardising data."))
 
+        # Reformat: rectify duplicate indices
+        df = df.sort_values(by="Date", ascending=True)
+        df = df.reset_index(drop=True) 
+
         return df
        
     def double_entry_from_value(df):
         logger.debug(begin("Formatting double entry columns."))
         df["Value"] = df["Value"].astype(float)
+
         cc_mask = (df["Account Name"] == "CREDIT")
         pos_mask = (df["Value"] > 0)
         neg_mask = (df["Value"] < 0)
-
         df["Debit"] = np.where((cc_mask & pos_mask) | (~cc_mask & neg_mask), df["Value"], np.nan)
         df["Credit"] = np.where((cc_mask & neg_mask) | (~cc_mask & pos_mask), abs(df["Value"]), np.nan)
 
@@ -177,7 +180,7 @@ def import_new_csv():
         logger.info("Archiving processed .csv files")
         # move iput csv to archive
         for f in input_files:
-            new_path = os.path.join(ARCHIVE_DIR, os.path.basename(f) + ".csv")
+            new_path = os.path.join(ARCHIVE_DIR, os.path.basename(f))
             logger.debug("Renaming %s to %s" % f, new_path)
             os.rename(f, new_path)
         logger.info(success("Done -Moved %s files" % len(input_files)))
@@ -194,6 +197,8 @@ def import_new_csv():
 
 def categorise_transactions(merged_csv):
     df = pd.read_csv(merged_csv)
+    # print(df.shape)
+    # print(df.dtypes)
     
 
 ## MAIN ROUTINE
