@@ -101,32 +101,36 @@ def import_new_csv():
         df = df.reset_index(drop=True) 
         # Reformat: standardise and type Date
         df["Date"] = pd.to_datetime(df["Date"], format="mixed")
-        # Assign values to CC balance declaration
-        mask = (df["Method"].isna()) & (df["Description"].str.contains("Balance")) & (df["Account Name"] == "CREDIT")
-        df.loc[mask, "Method"] = "BAL"
-        logger.debug(success("Done standardising data."))
+        # Handle null values for CC balance declaration method and Balance column
+        mask_credit = (df["Account Name"] == "CREDIT")
+        df.loc[mask_credit & (df["Method"].isna()) & (df["Description"].str.contains("Balance")), "Method"] = "BAL"
+        print(df.loc[mask_credit & (df["Balance"].isna()), "Balance"])
+        df.loc[mask_credit & (df["Balance"].isna()), "Balance"] = float("nan")
+        #(df["Method"].isna()) & (df["Description"].str.contains("Balance")) & (df["Account Name"] == "CREDIT")
+        #df.loc[mask, "Method"] = "BAL"
+        #mask = (df["Balance"].isna()) & (df["Account Name"] == "CREDIT")
+        #df.loc[mask, "Balance"] = "NaN"
         # Standardise CC transaction methods to TLA
         replace_methods = {"Purchase": "PUR", 
                         "Payment": "PAY", 
                         "Interest": "INT"}
         df["Method"] = df["Method"].replace(replace_methods)
+        logger.debug(success("Done standardising data."))
 
         return df
-    
-
-    def format_tr_value(df):
-        logger.debug(begin("Formatting Value column."))
-        # type Value
+       
+    def double_entry_from_value(df):
+        logger.debug(begin("Formatting double entry columns."))
         df["Value"] = df["Value"].astype(float)
-        # Split "Value" into Dr Cr depending on if credit card
-        is_cc = (df["Account Name"] == "CREDIT")
-        is_pos = (df["Value"] > 0)
-        is_neg = (df["Value"] < 0)
-        df["Credit"] = np.where(is_cc & is_pos, df["Value"],"")
-        df["Debit"] = np.where(is_cc & is_neg, abs(df["Value"]),"")
-        df["Credit"] = np.where(~is_cc & is_pos, df["Value"],"")
-        df["Debit"] = np.where(~is_cc & is_neg, abs(df["Value"]),"")
-        logger.debug(success("Done formatting Value column."))
+        cc_mask = (df["Account Name"] == "CREDIT")
+        pos_mask = (df["Value"] > 0)
+        neg_mask = (df["Value"] < 0)
+
+        df["Debit"] = np.where((cc_mask & pos_mask) | (~cc_mask & neg_mask), df["Value"], np.nan)
+        df["Credit"] = np.where((cc_mask & neg_mask) | (~cc_mask & pos_mask), abs(df["Value"]), np.nan)
+
+        df[["Debit", "Credit"]] = df[["Debit", "Credit"]].fillna(np.nan)
+        logger.debug(success("Done formatting double entry columns."))
         return df
 
     def trim_input_bloat(df):
@@ -181,7 +185,7 @@ def import_new_csv():
     df = merge_input_files(input_files)
     df = add_columns(df)
     df = standardise_input_data(df)
-    df = format_tr_value(df)
+    df = double_entry_from_value(df)
     df = trim_input_bloat(df)
     df = reorder_columns(df)
     merged_csv = merged_df_export(df)
