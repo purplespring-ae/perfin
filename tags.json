@@ -1,0 +1,118 @@
+{
+    "categories" : {
+        "Salary": {
+            "Penderels": []
+        },
+        "Benefits": {
+            "UC": [],
+            "PIP": [],
+            "ESA": []
+        },
+        "Banking": {
+            "Interest": [],
+            "Rewards":[],
+            "Cashback":[],
+            "Charges":[]
+        },
+        "Friends & Family": {
+            "Gift":[],
+            "Repayment":[]
+        },
+        "Debt": {
+            "Borrow":[],
+            "Repayment":[],
+            "Interest Charged":[]
+        },
+        "Bills": {
+            "Rent":[],
+            "Council Tax":[],
+            "Gas":[],
+            "Electric":[],
+            "Water":[],
+            "Phone":[],
+            "Broadband":[],
+            "Insurance":[],
+            "TV Licence":[],
+            "Combined":[],
+            "Documentation":[]
+        },
+        "Home": {
+            "Furnishings":[],
+            "Repairs & Decorating":[],
+            "Plants & Gardening":[],
+            "Clothing":[],
+            "Stationery":[],
+            "Services":[]
+        },
+        "Care": {
+            "Prescriptions":[],
+            "Dentist":[],
+            "Toiletries":[],
+            "Counselling":[],
+            "ATF":[]
+        },
+        "Activity": {
+            "Swimming":[],
+            "Climing":[],
+            "Fishing":[],
+            "Running":[],
+            "Yoga":[],
+            "Guitar":[],
+            "Bike":[],
+            "Weights":[],
+            "Gym":[],
+            "Misc":[]
+        },
+        "Entertainment": {
+            "Books":[],
+            "Music":[],
+            "VOD":[],
+            "Live":[],
+            "Software":[],
+            "News":[],
+            "Games":[],
+            "Misc":[]
+        },
+        "Food": {
+            "Groceries":[],
+            "Bulk Buys":[],
+            "Eating Out & Takeaways":[],
+            "Snacks & Coffee":[]
+        },
+        "Discretionary": {
+            "Gift":[],
+            "Donation":[],
+            "Cash":[]
+        },
+        "Transport": {
+            "Vehicle":[],
+            "Fuel":[],
+            "Bus":[],
+            "Bike":[],
+            "Taxi":[],
+            "Train":[],
+            "Parking/Toll":[]
+        },
+        "Travel & Holidays": {
+            "Transport":[],
+            "Accommodation":[],
+            "Spending Money":[],
+            "Eating & Drinking":[],
+            "Insurance & Documentation":[],
+            "Currency":[]
+        },
+        "Transfer": {
+            "Transfer In":[],
+            "Transfer Out":[]
+        },
+        "Work": {
+            "Clothing":[],
+            "Membership/Subscription":[],
+            "Advertising":[],
+            "Insurance":[],
+            "Premises":[],
+            "Training & CPD":[],
+            "Documentation":[]
+        }
+    }
+}

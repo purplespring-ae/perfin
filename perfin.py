@@ -98,8 +98,8 @@ def import_new_csv():
             "Saver": "SAVER",
             "'A W EVANS": 'CREDIT'})
         # Reformat: standardise and type Date
-        ldate_mask = (df['Date'].str.contains('\d{2} \w{3} \d{4}'))
-        sdate_mask = (df['Date'].str.contains('\d{2}/\d{2}/\d{4}'))
+        ldate_mask = (df['Date'].str.contains(r"\d{2} \w{3} \d{4}"))
+        sdate_mask = (df['Date'].str.contains(r"\d{2}/\d{2}/\d{4}"))
         df.loc[ldate_mask, 'Date'] = pd.to_datetime(df.loc[ldate_mask, 'Date'], format='%d %b %Y').dt.date
         df.loc[sdate_mask, 'Date'] = pd.to_datetime(df.loc[sdate_mask, 'Date'], format='%d/%m/%Y').dt.date
        
@@ -181,7 +181,7 @@ def import_new_csv():
         # move iput csv to archive
         for f in input_files:
             new_path = os.path.join(ARCHIVE_DIR, os.path.basename(f))
-            logger.debug("Renaming %s to %s" % f, new_path)
+            logger.debug("Renaming %s to %s" % (f, new_path))
             os.rename(f, new_path)
         logger.info(success("Done -Moved %s files" % len(input_files)))
 
@@ -192,13 +192,11 @@ def import_new_csv():
     df = trim_input_bloat(df)
     df = reorder_columns(df)
     merged_csv = merged_df_export(df)
-    # archive_processed_csv(input_files)
+    archive_processed_csv(input_files)
     return merged_csv
 
 def categorise_transactions(merged_csv):
     df = pd.read_csv(merged_csv)
-    # print(df.shape)
-    # print(df.dtypes)
     
 
 ## MAIN ROUTINE
