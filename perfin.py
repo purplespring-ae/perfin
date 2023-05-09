@@ -23,7 +23,6 @@ from perflog import logger as lg, success, begin, failed
 ## ----------------------------------
 INPUT_DIR = ".\\raw\\new"
 ARCHIVE_DIR = ".\\raw\\archive"
-CSV_DIR = ".\\raw\\pf" # for combined CSV files
 
 ## GLOBAL VARIABLES - FORMATS
 ## --------------------------
@@ -94,6 +93,13 @@ def import_new_csv():
         df["Method"] = df["Method"].replace(replace_methods)
         logger.debug(success("Done standardising data."))
 
+        # Remove commas from Description which may confuse csv or sql and compact spacing
+        df["Description"] = df["Description"].replace({
+            ",": " ",
+            "   ": " ",
+            "  ": " "}
+            )
+
         # Reformat: rectify duplicate indices
         df = df.sort_values(by="Date", ascending=True)
         df = df.reset_index(drop=True) 
@@ -107,7 +113,7 @@ def import_new_csv():
         cc_mask = (df["Account Name"] == "CREDIT")
         pos_mask = (df["Value"] > 0)
         neg_mask = (df["Value"] < 0)
-        df["Debit"] = np.where((cc_mask & pos_mask) | (~cc_mask & neg_mask), df["Value"], np.nan)
+        df["Debit"] = np.where((cc_mask & pos_mask) | (~cc_mask & neg_mask), abs(df["Value"]), np.nan)
         df["Credit"] = np.where((cc_mask & neg_mask) | (~cc_mask & pos_mask), abs(df["Value"]), np.nan)
 
         df[["Debit", "Credit"]] = df[["Debit", "Credit"]].fillna(np.nan)
@@ -155,20 +161,6 @@ def import_new_csv():
         logger.debug(success("Done matching columns to db"))
         return df
 
-    def merged_df_export(df):
-        # TODO: deprecate
-        logger.info(begin("Exporting merged transactions dataframe to %s" % CSV_DIR))
-        # save merged df to csv
-        earliest_date = df["date"].min().strftime(FNAME_DATE) 
-        latest_date = df["date"].max().strftime(FNAME_DATE)
-        today_date = datetime.today().strftime(FNAME_DATE)
-        logger.info("Transactions found for this date range: %s to %s", earliest_date, latest_date)
-        fname = f"transactions_{earliest_date}_to_{latest_date}_imported_{today_date}"
-        fpath = os.path.join(CSV_DIR,fname + ".csv")
-        df.to_csv(fpath)
-        logger.info(success("Done exporting transactions. Filepath: %s" % fpath))
-        return fpath
-    
     def archive_processed_csv(fpaths):
         logger.info("Archiving processed .csv files")
         # move iput csv to archive
@@ -212,6 +204,16 @@ if __name__ == "__main__":
     with open("db/schema.sql") as schema:
         commands = schema.read()
         cursor.executescript(commands)
+    
+    # get user-customised categories from csv
+    def get_subcats():
+        logger.info(begin("Getting subcategories from csv"))
+        df = pd.read_csv("./db/cat.csv")
+        df["methods"] = df["methods"].str.split("|")
+        df["description_tells"] = df["description_tells"].str.split("|")
+        # print(df["description_tells"].dropna())
+        logger.info(success ("Grabbed %s subcategories from csv" % len(df.index)))
 
     # work with new data
     fpath_new = import_new_csv()
+    get_subcats()
