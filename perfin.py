@@ -2,7 +2,7 @@
 ## -----------------------
 import os
 import logging
-import configparser
+import sqlite3
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -11,6 +11,7 @@ import plotly.graph_objects as go
 from jupyter_dash import JupyterDash
 from dash import dcc
 from dash import html
+import db
 
 ## LOCAL MODULE IMPORTS
 ## --------------------
@@ -18,29 +19,6 @@ from perflog import logger as lg, success, begin, failed
 
 ## CLASS VARIABLES
 ## --------------
-class Account():
-    def __init__(self, bank, label, csv_flag, is_credit) -> None:
-        self.bank = bank
-        self.label = label
-        self.csv_flag = csv_flag
-        self.is_credit = is_credit
-
-class TransactionType():
-    def __init__(self):
-        pass
-
-class TransactionCategory():
-    def __init__(self, label:str, type:TransactionType):
-        self.label = label
-        self.type = type
-
-class TransactionSubCategory(TransactionCategory):
-    def __init__(self, label:str, type:TransactionType, category:TransactionCategory):
-        super().__init__(label, type)
-        self.category = category
-        self.tells = [
-            # strings to look for in ["Description"]
-        ]
 
 ## GLOBAL VARIABLES - FILE MANAGEMENT
 ## ----------------------------------
@@ -206,6 +184,9 @@ if __name__ == "__main__":
     # instantiate logger
     logger = lg(terminal_level=logging.DEBUG, file_level=0)
 
+    # connect to db
+    conn, cursor = db.conn_init()
+
     # work with new data
     fpath_new = import_new_csv()
-    categorise_transactions(fpath_new)
+    # categorise_transactions(fpath_new)
