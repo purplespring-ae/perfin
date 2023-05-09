@@ -5,6 +5,7 @@ import logging
 import pandas as pd
 import numpy as np
 from datetime import datetime
+# import sqlalchemy
 import plotly.express as px
 import plotly.graph_objects as go
 from jupyter_dash import JupyterDash
@@ -180,16 +181,16 @@ def import_new_csv():
     archive_processed_csv(input_files)
     db.insert_transactions(df)
 
-## UTILITY FUNCTIONS
-## -----------------
-
-def categorise_transactions():
+def get_subcats():
     pass
 
 
-## CUSTOMISATION
-## -------------
+## UTILITY FUNCTIONS
+## -----------------
 
+def categorise_transactions(df_sc, df_tn):
+    # add columns for suggested category and subcategory
+    df_tn["suggest_sc"] = ""
 
 ## MAIN ROUTINE
 ## ------------
@@ -205,15 +206,12 @@ if __name__ == "__main__":
         commands = schema.read()
         cursor.executescript(commands)
     
-    # get user-customised categories from csv
-    def get_subcats():
-        logger.info(begin("Getting subcategories from csv"))
-        df = pd.read_csv("./db/cat.csv")
-        df["methods"] = df["methods"].str.split("|")
-        df["description_tells"] = df["description_tells"].str.split("|")
-        # print(df["description_tells"].dropna())
-        logger.info(success ("Grabbed %s subcategories from csv" % len(df.index)))
-
     # work with new data
     fpath_new = import_new_csv()
-    get_subcats()
+
+    # categorise transactions
+    db.insert_subcats()
+    # df_sc = get_subcats()
+    # df_tn = pd.read_sql("SELECT * FROM transactions", conn)
+
+    # categorise_transactions(df_sc, df_tn)

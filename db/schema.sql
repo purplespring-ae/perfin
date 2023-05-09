@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS subcategories (
     category INTEGER,
     methods TEXT,
     amounts TEXT,
-    desc_flags TEXT,
+    descr_tells TEXT,
     FOREIGN KEY (category) REFERENCES categories(id)
 );
 

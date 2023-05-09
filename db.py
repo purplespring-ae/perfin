@@ -5,7 +5,7 @@ import os
 import sqlite3
 # import sqlalchemy
 import pandas as pd
-# import logging
+# import logging # TODO
 # import perflog as lg
 
 ## LOCAL MODULE IMPORTS
@@ -45,6 +45,21 @@ def insert_transactions(df:pd.DataFrame):
     conn, cursor = conn_init()
     df.to_sql("transactions", conn, if_exists="append", index=False)
     conn.close()
+
+def get_id(tablename, label): # TODO
+    pass
+
+def insert_subcats():
+    '''get user-customised categories from csv'''
+    conn, cursor = conn_init()
+    # logger.info(begin("Getting subcategories from csv"))
+    df = pd.read_csv("./db/cat.csv")
+    # logger.info(success ("Grabbed %s subcategories from csv" % len(df.index)))
+    df.to_sql("subcategories", conn, if_exists="replace")
+
+
+    conn.close()
+    
 
 
 ## MAIN ROUTINE
