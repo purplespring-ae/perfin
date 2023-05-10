@@ -3,6 +3,7 @@
 
 import os
 import sqlite3
+import csv
 # import sqlalchemy
 import pandas as pd
 # import logging # TODO
@@ -17,7 +18,8 @@ import pandas as pd
 ## ----------------
 
 DB_PATH = ".\\db\\perfin-sqlite.db"
-SCHEMA_PATH = "\\db\\schema.sql"
+SCHEMA_PATH = ".\\db\\schema.sql"
+SUBCATS_PATH = ".\\db\\cat.csv"
 
 ## DATABASE INIT FUNCTIONS
 ## -----------------------
@@ -46,19 +48,32 @@ def insert_transactions(df:pd.DataFrame):
     df.to_sql("transactions", conn, if_exists="append", index=False)
     conn.close()
 
-def get_id(tablename, label): # TODO
-    pass
+def get_sc_id(label:str):
+    conn, cursor = conn_init()
+
+    conn.close()
 
 def insert_subcats():
-    '''get user-customised categories from csv'''
+    '''insert new user-customised categories from csv to db'''
     conn, cursor = conn_init()
-    # logger.info(begin("Getting subcategories from csv"))
-    df = pd.read_csv("./db/cat.csv")
-    # logger.info(success ("Grabbed %s subcategories from csv" % len(df.index)))
-    df.to_sql("subcategories", conn, if_exists="replace")
+    sql_str =   """ SELECT label FROM subcategories
+                """
+    cursor.execute(sql_str)
+    existing_subcats = [row[0] for row in cursor.fetchall()]
+
+    with open(SUBCATS_PATH, "r") as subcats_csv:
+        reader = csv.DictReader(subcats_csv)
+        for row in reader:
+            if row["label"] in existing_subcats:
+                cursor.execute("UPDATE subcategories SET methods=?, amounts=?, descr_tells=? WHERE label=?",
+                                (row["methods"], row["amounts"], row["descr_tells"], row["label"]))
+            else:
+                cursor.execute("INSERT INTO subcategories (label, category, methods, amounts, descr_tells) VALUES (?, ?, ?, ?, ?)",
+                           (row["label"], row["category"], row["methods"], row["amounts"], row["descr_tells"]))
 
 
     conn.close()
+
     
 
 

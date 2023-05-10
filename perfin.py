@@ -211,6 +211,7 @@ if __name__ == "__main__":
 
     # categorise transactions
     db.insert_subcats()
+    # db.get_sc_id("")
     # df_sc = get_subcats()
     # df_tn = pd.read_sql("SELECT * FROM transactions", conn)
 
